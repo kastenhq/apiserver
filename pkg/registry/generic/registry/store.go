@@ -43,7 +43,6 @@ import (
 	"k8s.io/apiserver/pkg/registry/rest"
 	"k8s.io/apiserver/pkg/storage"
 	storeerr "k8s.io/apiserver/pkg/storage/errors"
-	"k8s.io/apiserver/pkg/storage/etcd3/metrics"
 	"k8s.io/apiserver/pkg/util/dryrun"
 	"k8s.io/client-go/tools/cache"
 
@@ -1375,15 +1374,7 @@ func (e *Store) startObservingCount(period time.Duration) func() {
 	resourceName := e.DefaultQualifiedResource.String()
 	klog.V(2).Infof("Monitoring %v count at <storage-prefix>/%v", resourceName, prefix)
 	stopCh := make(chan struct{})
-	go wait.JitterUntil(func() {
-		count, err := e.Storage.Count(prefix)
-		if err != nil {
-			klog.V(5).Infof("Failed to update storage count metric: %v", err)
-			metrics.UpdateObjectCount(resourceName, -1)
-		} else {
-			metrics.UpdateObjectCount(resourceName, count)
-		}
-	}, period, resourceCountPollPeriodJitter, true, stopCh)
+	go wait.JitterUntil(func() {}, period, resourceCountPollPeriodJitter, true, stopCh)
 	return func() { close(stopCh) }
 }
 
